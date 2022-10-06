@@ -25,5 +25,29 @@ def answer(message):
     else:
         bot.send_message(message.chat.id, address + ' - не могу найти адрес')
 
+@bot.message_handler(content_types=["text"])
+def answer(message):
+    address = message.text
+    gps1 = geo.get_gps(address) # получаем положение в виде координат
+    if gps1 != None:
+        # gps2 = geo.get_gps(config.main_address)
+        gps2 = config.main_gps # координаты вуза
+        distance = geo.haversine(gps1[0], gps1[1], gps2[0], gps2[1]) # получаем расстояние
+        # проверка расстояния
+        print(address, ' - ', distance)
+        bot.send_message(message.chat.id, address + ' - ' + str(distance) + ' км')
+    else:
+        bot.send_message(message.chat.id, address + ' - не могу найти адрес')
+
+@bot.message_handler(content_types=["location"])
+def answer(message):
+    gps1 = (message.location.longitude, message.location.latitude)
+    # gps2 = geo.get_gps(config.main_address)
+    gps2 = config.main_gps # координаты вуза
+    distance = geo.haversine(gps1[0], gps1[1], gps2[0], gps2[1]) # получаем расстояние
+    # проверка расстояния
+    print(gps1, ' - ', distance)
+    bot.send_message(message.chat.id, ' - ' + str(distance) + ' км')
+
 if __name__ == '__main__':
     bot.infinity_polling()
