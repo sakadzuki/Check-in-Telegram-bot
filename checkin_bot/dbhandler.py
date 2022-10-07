@@ -34,6 +34,15 @@ class DBHandler:
             self.cursor.execute('INSERT INTO checkin ("user_chat_id", "datetime", "distance", "result") VALUES (?, ?, ?, ?)', (chat_id, datetime, distance, result,))
             self.connection.commit()  # сохраняем изменения
 
+    # получить список чек-инов для пользователя
+    # если result задан, можно отфильтировать чек-ины по результату (УСПЕШНО/НЕУДАЧНО)
+    def get_checkins(self, chat_id, result=''):
+        with self.connection:
+            if result == '':
+                return self.cursor.execute('SELECT * FROM checkin WHERE user_chat_id = ?', (chat_id,)).fetchall()
+            else:
+                return self.cursor.execute('SELECT * FROM checkin WHERE user_chat_id = ? AND result = ?', (chat_id, result)).fetchall()
+
     # закрытие подключения
     def close(self):
         self.connection.close()

@@ -1,7 +1,7 @@
 from datetime import datetime
 
 def commands_message():
-    msg = '\n/checkin - проверить присутствие'
+    msg = '\n/history - история чекинов'
     return msg
 
 def timestamp_to_datestr(timestamp):
