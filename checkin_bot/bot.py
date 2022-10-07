@@ -88,12 +88,21 @@ def checkin_handle(message, distance):
     db.add_checkin(message.chat.id, date, distance, result)  # добавляем данные о чек-ине
     db.close()
 
+# обработчик запроса на изменение данных пользователя
+@bot.message_handler(commands=['edit'])
+def history_message(message):
+    db = DBHandler(config.db_path)
+    name, group = db.get_user_data(message.chat.id)
+    bot.send_message(message.chat.id, 'Текущие данные: ' + name + ', ' + group)
+    db.set_user_mode(message.chat.id, Modes.wait_name.value)  # ожидаем от пользователя имя
+    db.close()
+    bot.send_message(message.chat.id, 'Пришлите Ваши имя и группу одним сообщением через запятую')
+
 # обработка сообщения с текстом
 @bot.message_handler(content_types=["text"])
 def answer(message):
     db = DBHandler(config.db_path)
     user_mode = db.get_user_mode(message.chat.id)
-
     if user_mode == Modes.wait_name.value: # если от пользователя ожидается имя, группа
         user_data = message.text.split(',') # пробуем получить данные пользователя через запятую
         if len(user_data) > 0:
@@ -114,12 +123,10 @@ def answer(message):
             gps2 = config.main_gps # координаты вуза
             distance = geo.haversine(gps1[0], gps1[1], gps2[0], gps2[1]) # получаем расстояние
             # проверка расстояния
-            print(address, ' - ', distance)
             bot.send_message(message.chat.id, address + ' - ' + str(distance) + ' км')
             checkin_handle(message, distance) # обработка чек-ина
         else:
             bot.send_message(message.chat.id, address + ' - не могу найти адрес')
-
 
 # обработчик на случай, если пользователь прислал локацию
 @bot.message_handler(content_types=["location"])
