@@ -31,7 +31,7 @@ class DBHandler:
     # добавить чек-ин
     def add_checkin(self, chat_id, datetime, distance, result):
         with self.connection:
-            self.cursor.execute('INSERT INTO checkin ("chat_id", "datetime", "distance", "result") VALUES (?, ?, ?, ?)', (chat_id, datetime, distance, result,))
+            self.cursor.execute('INSERT INTO checkin ("user_chat_id", "datetime", "distance", "result") VALUES (?, ?, ?, ?)', (chat_id, datetime, distance, result,))
             self.connection.commit()  # сохраняем изменения
 
     # закрытие подключения

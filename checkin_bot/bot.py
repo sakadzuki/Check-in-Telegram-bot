@@ -10,7 +10,7 @@ bot = telebot.TeleBot(config.token)
 @bot.message_handler(commands=['start'])
 def hello_message(message):
     hello = 'Здравствуйте! Здесь Вы можете подтвердить свое нахождение рядом с вузом\n'
-    chat_id = message.from_user.id # получаем идентификатор пользователя
+    chat_id = message.chat.id # получаем идентификатор пользователя
     db = DBHandler(config.db_path) # подключаемся к БД
     if db.check_user(chat_id): # если пользователь есть в БД
         # проверяем, представлялся ли он
@@ -33,6 +33,15 @@ def answer(message):
         # проверка расстояния
         print(address, ' - ', distance)
         bot.send_message(message.chat.id, address + ' - ' + str(distance) + ' км')
+        if (distance < config.acceptable_distance):  # если расстояние не превышает приемлемое
+            result = 'УСПЕШНО' # успешный чек-ин
+        else:
+            result = 'НЕУДАЧНО'
+        bot.send_message(message.chat.id, result) # сообщение с результатом
+        db = DBHandler(config.db_path)  # подключаемся к БД
+        date = replies.timestamp_to_datestr(message.date) # дата сообщения
+        db.add_checkin(message.chat.id, date, distance, result) # добавляем данные о чек-ине
+        db.close()
     else:
         bot.send_message(message.chat.id, address + ' - не могу найти адрес')
 
@@ -44,8 +53,16 @@ def answer(message):
     gps2 = config.main_gps # координаты вуза
     distance = geo.haversine(gps1[0], gps1[1], gps2[0], gps2[1]) # получаем расстояние
     # проверка расстояния
-    print(gps1, ' - ', distance)
-    bot.send_message(message.chat.id, ' - ' + str(distance) + ' км')
+    bot.send_message(message.chat.id, str(distance) + ' км')
+    if (distance < config.acceptable_distance):  # если расстояние не превышает приемлемое
+        result = 'УСПЕШНО'  # успешный чек-ин
+    else:
+        result = 'НЕУДАЧНО'
+    bot.send_message(message.chat.id, result)  # сообщение с результатом
+    db = DBHandler(config.db_path)  # подключаемся к БД
+    date = replies.timestamp_to_datestr(message.date)  # дата сообщения
+    db.add_checkin(message.chat.id, date, distance, result)  # добавляем данные о чек-ине
+    db.close()
 
 if __name__ == '__main__':
     bot.infinity_polling()
