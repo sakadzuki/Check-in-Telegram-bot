@@ -28,6 +28,11 @@ class DBHandler:
         with self.connection:
             return self.cursor.execute('SELECT * FROM user WHERE chat_id = ?', (chat_id,)).fetchall()[0][2]
 
+    # задать данные пользователя - имя, группа
+    def set_user_data(self, chat_id, name, group):
+        self.cursor.execute('UPDATE user SET name = ?, "group" = ? WHERE chat_id = ?', (name, group, chat_id,))
+        self.connection.commit()  # сохраняем изменения
+
     # добавить чек-ин
     def add_checkin(self, chat_id, datetime, distance, result):
         with self.connection:
@@ -42,6 +47,19 @@ class DBHandler:
                 return self.cursor.execute('SELECT * FROM checkin WHERE user_chat_id = ?', (chat_id,)).fetchall()
             else:
                 return self.cursor.execute('SELECT * FROM checkin WHERE user_chat_id = ? AND result = ?', (chat_id, result)).fetchall()
+
+    # обновить режим работы бота для пользователя
+    def set_user_mode(self, chat_id, mode):
+        self.cursor.execute('UPDATE user SET mode = ? WHERE chat_id = ?', (mode, chat_id,))
+        self.connection.commit()  # сохраняем изменения
+
+    # получить данные пользователя (имя, группа)
+    def get_user_data(self, chat_id):
+        with self.connection:
+            user = self.cursor.execute('SELECT * FROM user WHERE chat_id = ?', (chat_id,)).fetchall()[0]
+            name = user[3]
+            group = user[4]
+            return name, group
 
     # закрытие подключения
     def close(self):
